@@ -50,8 +50,9 @@ ABL.cutoff_height              = 800.0
 ABL.random_gauss_mean          = 0.0
 ABL.random_gauss_var           = 1.0
 
-ABL.mo_gamma_m = 4.8
-ABL.mo_gamma_h = 7.8
+ABL.mo_beta_m  = 16.0
+ABL.mo_gamma_m = 5.0
+ABL.mo_gamma_h = 5.0
 ABL.surface_temp_flux          = 0.01220961466456118644 
 #ABL.surface_temp_rate          = -0.25       # CHANGE
 #ABL.surface_roughness_z0 = 0.1
@@ -83,11 +84,12 @@ geometry.is_periodic           = 1 1 0                          # Periodicity x 
 
 # Boundary conditions
 zlo.type                       =   "wall_model"
-zlo.temperature_type           = "fixed_gradient"
-zlo.temperature                = 0.0
+zlo.temperature_type           =   "wall_model"
+zlo.tke_type                   =   "zero_gradient"
+
 zhi.type                       =   "slip_wall"
-zhi.temperature_type           = "fixed_gradient"
-zhi.temperature                = 0.003 # tracer is used to specify potential temperature gradient
+zhi.temperature_type           =   "fixed_gradient"
+zhi.temperature                =    0.003 # tracer is used to specify potential temperature gradient
 
 
 #---------------------------------------#
