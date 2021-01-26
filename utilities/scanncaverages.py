@@ -15,11 +15,12 @@ outputfile     = 'test.out'
 ipts           = [0, 10]
 jpts           = [0]
 kpt            = 0
+kpt_alpha      = 1
 dx             = 2
 dy             = 2
-avgtimes       = [[15000.0, 15100.0]]
+avgtimes       = [[15000.0, 15100.0], [15100, 15200]]
 ncdata   = Dataset(netcdffile, 'r')
-scanncaverages.scanTimeSeries(ncdata, ipts, jpts, kpt, dx, dy, avgtimes,outputfile, group=group, verbose=True)
+scanncaverages.scanTimeSeries(ncdata, ipts, jpts, kpt, dx, dy, avgtimes,outputfile, kpt_alpha=kpt_alpha, group=group, verbose=True)
 
 """
 
@@ -82,7 +83,7 @@ def writeTimeSeries(ncdat, xvec, yvec, zvec, savestring,
                 if verbose: print("saved "+fname)
 
 def scanTimeSeries(ncdat, ivec, jvec, kpt, dx, dy, avgtimes,
-                   savefile, group='p_h', verbose=True):
+                   savefile, kpt_alpha=None, group='p_h', verbose=True):
     """
     Average the spectra over multiple x, y, z locations
     """
@@ -108,6 +109,7 @@ def scanTimeSeries(ncdat, ivec, jvec, kpt, dx, dy, avgtimes,
     #print('Nijk = ',Nijk)
     #print('Nt   = ',Nt, len(t))
     header="# T1 T2    I J K   X Y Z   AVGU AVGV AVGW  STDU STDV STDW"
+    if kpt_alpha is not None: header += " ALPHA" 
     if verbose: print(header)
     if len(savefile)>0:
         with open(savefile, 'w') as f:
@@ -151,10 +153,44 @@ def scanTimeSeries(ncdat, ivec, jvec, kpt, dx, dy, avgtimes,
                 stdv = np.sqrt(np.mean(stdv_vec))
                 stdw = np.sqrt(np.mean(stdw_vec))
 
+                # Get the alpha exponent (if needed)
+                if kpt_alpha is not None:
+                    # Get the basic point
+                    basept_alpha = (ix) + (iy)*Ni + kpt_alpha*Ni*Nj
+                    xyzpt_alpha = np.array([allpts[basept_alpha, 0], 
+                                            allpts[basept_alpha, 1], 
+                                            allpts[basept_alpha, 2]])
+                    
+                    # Get all points around it
+                    ipts_alpha=[]
+                    for deltai in range(dx): 
+                        for deltaj in range(dy):
+                            ipt    = (ix+deltai) + (iy+deltaj)*Ni + kpt_alpha*Ni*Nj
+                            ipts_alpha.append(ipt)
+                    alphau_vec, alphav_vec, alphaw_vec =[], [], []
+                    for ipt in ipts_alpha:
+                        alphau_vec.append(np.mean(allvx[tfilter, ipt]))
+                        alphav_vec.append(np.mean(allvy[tfilter, ipt]))
+                        alphaw_vec.append(np.mean(allvz[tfilter, ipt]))
+                    avgu_alpha = np.mean(alphau_vec)
+                    avgv_alpha = np.mean(alphav_vec)
+                    avgw_alpha = np.mean(alphaw_vec)
+                    Uh_0       = np.sqrt(avgu**2 + avgv**2)
+                    Uh_alpha   = np.sqrt(avgu_alpha**2 + avgv_alpha**2)
+                    #print("z1 = %f z2 = %f"%(xyzpt[2], xyzpt_alpha[2]))
+                    # ------------
+                    # Following the formula (V2/V1) = (z2/z1)^alpha
+                    #                       alpha = log(V2/V1)/log(z2/z1)
+                    if kpt_alpha > kpt:
+                        alpha_shear = np.log(Uh_alpha/Uh_0)/np.log(xyzpt_alpha[2]/xyzpt[2])
+                    else:
+                        alpha_shear = np.log(Uh_0/Uh_alpha)/np.log(xyzpt[2]/xyzpt_alpha[2])
+
                 outstring=" ".join([repr(x) for x in 
                                     [tavg[0], tavg[1], ix, iy, kpt,
                                      xyzpt[0], xyzpt[1], xyzpt[2], 
                                      avgu, avgv, avgw, stdu, stdv, stdw]])
+                if kpt_alpha is not None: outstring += " "+repr(alpha_shear)
                 if verbose:
                     print(outstring)
                 if len(savefile)>0:
