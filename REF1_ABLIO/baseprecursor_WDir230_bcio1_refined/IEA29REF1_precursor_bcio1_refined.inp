@@ -66,7 +66,7 @@ incflo.physics                 = ABL
 #        ADAPTIVE MESH REFINEMENT       #
 #---------------------------------------#
 amr.n_cell                     = 128 128 160                    # Grid cells at coarsest AMRlevel
-amr.max_level                  = 0                              # Max AMR level in hierarchy
+amr.max_level                  = 1                              # Max AMR level in hierarchy
 
 #---------------------------------------#
 #              GEOMETRY                 #
@@ -161,6 +161,17 @@ sampling.ybc.axis2  = 0.0 0.0 1920.0
 sampling.ybc.origin = 0.0 0.0 0.0
 sampling.ybc.normal = 0.0 1.0 0.0
 sampling.ybc.offsets = 0.0 1536
+
+#---- tagging defs ----
+tagging.labels                           = box1                
+tagging.box1.type                        = GeometryRefinement  
+tagging.box1.shapes                      = box1                
+tagging.box1.level                       = 0                   
+tagging.box1.box1.type                   = box                 
+tagging.box1.box1.origin                 = 500.0 500.0 50.0    
+tagging.box1.box1.xaxis                  = 500.0 0.0 0.0       
+tagging.box1.box1.yaxis                  = 0.0 500.0 0.0       
+tagging.box1.box1.zaxis                  = 0.0 0.0 200.0       
 
 #¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨#
 # Boundary data sampling for IO         #
